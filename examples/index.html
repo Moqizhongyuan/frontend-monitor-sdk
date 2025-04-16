@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>前端监控SDK示例</title>
+    <style>
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Helvetica, Arial, sans-serif;
+        margin: 0;
+        padding: 20px;
+        line-height: 1.6;
+      }
+      .container {
+        max-width: 800px;
+        margin: 0 auto;
+      }
+      h1 {
+        color: #333;
+        border-bottom: 1px solid #eee;
+        padding-bottom: 10px;
+      }
+      .card {
+        background: #f9f9f9;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 15px;
+        margin-bottom: 20px;
+      }
+      button {
+        background: #4caf50;
+        color: white;
+        border: none;
+        padding: 10px 15px;
+        border-radius: 4px;
+        cursor: pointer;
+        margin-right: 10px;
+        margin-bottom: 10px;
+      }
+      button:hover {
+        background: #45a049;
+      }
+      input {
+        padding: 8px;
+        margin-bottom: 10px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        width: 100%;
+        box-sizing: border-box;
+      }
+      .error-btn {
+        background: #f44336;
+      }
+      .error-btn:hover {
+        background: #d32f2f;
+      }
+      pre {
+        background: #f5f5f5;
+        padding: 10px;
+        border-radius: 4px;
+        overflow: auto;
+      }
+      #logs {
+        height: 200px;
+        overflow-y: auto;
+        background: #333;
+        color: #fff;
+        padding: 10px;
+        border-radius: 4px;
+        font-family: monospace;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>前端监控SDK示例</h1>
+
+      <div class="card">
+        <h2>1. 性能监控</h2>
+        <p>页面加载性能数据已自动收集。</p>
+        <button id="refresh-page">刷新页面</button>
+      </div>
+
+      <div class="card">
+        <h2>2. 错误监控</h2>
+        <button id="js-error" class="error-btn">触发JS错误</button>
+        <button id="promise-error" class="error-btn">触发Promise错误</button>
+        <button id="console-error" class="error-btn">触发Console错误</button>
+        <button id="resource-error" class="error-btn">触发资源加载错误</button>
+      </div>
+
+      <div class="card">
+        <h2>3. 资源监控</h2>
+        <button id="load-resource">加载资源</button>
+        <div id="resource-container"></div>
+      </div>
+
+      <div class="card">
+        <h2>4. 用户行为监控</h2>
+        <p>点击和输入行为将被自动跟踪。</p>
+        <input type="text" placeholder="在此输入文本" />
+        <button id="custom-event">触发自定义事件</button>
+      </div>
+
+      <div class="card">
+        <h2>日志</h2>
+        <div id="logs"></div>
+      </div>
+    </div>
+
+    <!-- 加载SDK -->
+    <script src="../dist/index.umd.js"></script>
+
+    <script>
+      // 初始化监控SDK
+      const monitor = new FrontendMonitor({
+        appId: "example-app",
+        userId: "test-user-123",
+        reportUrl: "https://example.com/collect", // 这里替换为你的实际上报地址
+        enablePerformance: true,
+        enableError: true,
+        enableResource: true,
+        enableBehavior: true,
+      });
+
+      // 日志显示
+      function addLog(message) {
+        const logs = document.getElementById("logs");
+        const logEntry = document.createElement("div");
+        logEntry.textContent = `${new Date().toLocaleTimeString()}: ${message}`;
+        logs.appendChild(logEntry);
+        logs.scrollTop = logs.scrollHeight;
+      }
+
+      // 重写Reporter的report方法，用于在页面上显示日志
+      const originalReport = monitor.reporter.report;
+      monitor.reporter.report = function (data) {
+        addLog(`上报数据: ${JSON.stringify(data)}`);
+        return originalReport.apply(this, arguments);
+      };
+
+      // 刷新页面
+      document.getElementById("refresh-page").addEventListener("click", () => {
+        window.location.reload();
+      });
+
+      // JS错误
+      document.getElementById("js-error").addEventListener("click", () => {
+        try {
+          const obj = null;
+          obj.nonExistentMethod();
+        } catch (e) {
+          throw new Error("这是一个测试JS错误");
+        }
+      });
+
+      // Promise错误
+      document.getElementById("promise-error").addEventListener("click", () => {
+        new Promise((resolve, reject) => {
+          reject("这是一个测试Promise错误");
+        });
+      });
+
+      // Console错误
+      document.getElementById("console-error").addEventListener("click", () => {
+        console.error("这是一个测试Console错误");
+      });
+
+      // 资源加载错误
+      document
+        .getElementById("resource-error")
+        .addEventListener("click", () => {
+          const img = document.createElement("img");
+          img.src = "non-existent-image.jpg";
+          document.body.appendChild(img);
+          setTimeout(() => document.body.removeChild(img), 1000);
+        });
+
+      // 加载资源
+      document.getElementById("load-resource").addEventListener("click", () => {
+        const container = document.getElementById("resource-container");
+        container.innerHTML = "";
+
+        const img = document.createElement("img");
+        img.src = "https://picsum.photos/200/100?random=" + Math.random();
+        img.alt = "随机图片";
+        img.style.maxWidth = "100%";
+        container.appendChild(img);
+      });
+
+      // 自定义事件
+      document.getElementById("custom-event").addEventListener("click", () => {
+        monitor.trackEvent(
+          "ui_interaction",
+          "button_click",
+          "custom_event_button",
+          1
+        );
+        addLog("触发了自定义事件");
+      });
+
+      // 页面关闭前销毁监控实例
+      window.addEventListener("beforeunload", () => {
+        monitor.destroy();
+      });
+    </script>
+  </body>
+</html>
