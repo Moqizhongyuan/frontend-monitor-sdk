@@ -4,7 +4,7 @@ import {
   ResourceFlowTiming,
 } from "./getPerformanceApiService";
 
-export enum metricsName {
+enum metricsName {
   FP = "first-paint",
   FCP = "first-contentful-paint",
   LCP = "largest-contentful-paint",
@@ -14,7 +14,7 @@ export enum metricsName {
   RF = "resource-flow",
 }
 
-export const afterLoad = (callback: any) => {
+const afterLoad = (callback: any) => {
   if (document.readyState === "complete") {
     setTimeout(callback);
   } else {
@@ -25,12 +25,12 @@ export const afterLoad = (callback: any) => {
   }
 };
 
-export interface LayoutShift extends PerformanceEntry {
+interface LayoutShift extends PerformanceEntry {
   value: number;
   hadRecentInput: boolean;
 }
 
-export default class WebVitals {
+export class WebVitals {
   /** 本地暂存数据在 Map 里 （也可以自己用对象来存储） */
   public metrics: MetricsStore<metricsName>;
 

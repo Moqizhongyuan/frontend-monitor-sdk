@@ -1,12 +1,12 @@
 import typescript from "rollup-plugin-typescript2";
 import { nodeResolve } from "@rollup/plugin-node-resolve";
 import commonjs from "@rollup/plugin-commonjs";
-import terser from "rollup-plugin-terser";
+import terser from "@rollup/plugin-terser";
 
 const pkg = await import("./package.json", { assert: { type: "json" } });
 
 export default {
-  input: "src/index.ts",
+  input: "src/monitors/index.ts",
   output: [
     {
       file: pkg.default.main,
@@ -23,7 +23,7 @@ export default {
     {
       file: pkg.default.browser,
       format: "umd",
-      name: "FrontendMonitor",
+      name: "Yzy_FrontendMonitor",
       exports: "named",
       sourcemap: true,
     },
@@ -37,7 +37,7 @@ export default {
         exclude: ["**/*.test.ts", "dist"],
       },
     }),
-    terser.terser(),
+    terser(),
   ],
   external: [],
 };
