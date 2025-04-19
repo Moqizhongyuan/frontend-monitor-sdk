@@ -1,176 +1,130 @@
-# 前端监控 SDK
+# Frontend-Monitor-SDK
 
-一个轻量、模块化的前端监控 SDK，用于收集和上报前端应用的性能指标和用户行为数据。
+前端监控 SDK，用于追踪和收集前端应用的性能指标、错误信息和用户行为数据。
+
+## 简介
+
+Frontend-Monitor-SDK 是一个全面的前端监控解决方案，帮助开发者实时监控网站性能、捕获错误和分析用户行为。该 SDK 通过无侵入式集成，为开发团队提供丰富的监控数据，从而优化用户体验和提高应用质量。
 
 ## 功能特点
 
-- **性能监控**：收集关键性能指标
+### 错误监控
 
-  - FP (First Paint) - 首次绘制时间
-  - FCP (First Contentful Paint) - 首次内容绘制时间
-  - LCP (Largest Contentful Paint) - 最大内容绘制时间
-  - FID (First Input Delay) - 首次输入延迟
-  - CLS (Cumulative Layout Shift) - 累积布局偏移
-  - 导航计时 (Navigation Timing)
-  - 资源加载性能 (Resource Flow)
+- **JavaScript 错误捕获**：捕获运行时和语法错误
+- **资源加载错误监控**：监控脚本、样式、图片等资源的加载失败
+- **Promise 异常捕获**：捕获未处理的 Promise 异常
+- **HTTP 请求错误监控**：监控接口请求异常
+- **跨域错误追踪**：记录跨域脚本异常
 
-- **用户行为监控**：追踪用户页面交互
+### 性能监控
 
-  - 页面访问信息 (PI - Page Information)
-  - 用户来源信息 (OI - Origin Information)
-  - 路由变化记录 (RCR - Router Change Record)
-  - 点击行为记录 (CBR - Click Behavior Record)
-  - 自定义埋点事件 (CDR - Custom Define Record)
-  - HTTP 请求监控 (HT - HTTP Record)
+- **核心 Web 指标**：监控 LCP、FID、CLS 等 Google 核心 Web 指标
+- **性能计时**：收集首次绘制(FP)、首次内容绘制(FCP)等关键时间点
+- **资源加载性能**：追踪页面所有资源加载性能
+- **导航计时**：详细记录页面加载各阶段的耗时
+
+### 用户行为追踪
+
+- **页面访问追踪**：记录 PV、来源信息、访问路径
+- **交互行为监控**：记录用户点击行为
+- **路由变化记录**：监控单页应用的路由变化
+- **面包屑行为记录**：记录用户行为序列，帮助错误复现
+- **自定义事件分析**：支持开发者自定义埋点记录关键业务指标
 
 ## 安装
 
+使用 npm:
+
 ```bash
 npm install frontend-monitor-sdk
-# 或
-yarn add frontend-monitor-sdk
-# 或
+```
+
+使用 pnpm:
+
+```bash
 pnpm add frontend-monitor-sdk
 ```
 
 ## 快速开始
 
-```javascript
-import FrontendMonitor from "frontend-monitor-sdk";
+### 基本使用
 
-// 创建监控实例
-const monitor = new FrontendMonitor({
-  appId: "your-app-id",
-  userId: "user-123",
-  reportUrl: "https://your-api.com/report",
-  // 配置参数
-  enablePerformance: true,
-  enableBehavior: true,
+```javascript
+import { WebEngine } from "frontend-monitor-sdk";
+
+// 初始化监控引擎
+const monitor = new WebEngine({
+  transportUrl: "https://your-api-endpoint.com/collect", // 数据上报地址
 });
 
-// 手动上报自定义事件
-monitor.trackEvent({
-  eventCategory: "video",
+// SDK会自动开始收集错误、性能和用户行为数据
+```
+
+### 自定义事件埋点
+
+```javascript
+// 追踪用户播放视频事件
+monitor.userInstance.customHandler({
+  eventCategory: "Video",
   eventAction: "play",
-  eventLabel: "教程视频",
-  eventValue: "120s",
-});
-
-// 在应用退出时销毁实例
-window.addEventListener("unload", () => {
-  monitor.destroy();
+  eventLabel: "homepage-intro",
+  eventValue: "30s",
 });
 ```
 
-## 配置选项
+## 核心模块
 
-| 参数               | 类型     | 必填 | 默认值     | 描述                      |
-| ------------------ | -------- | ---- | ---------- | ------------------------- |
-| appId              | string   | 是   | -          | 应用标识符                |
-| userId             | string   | 是   | -          | 用户标识符                |
-| reportUrl          | string   | 是   | -          | 数据上报接口地址          |
-| enablePerformance  | boolean  | 否   | true       | 是否启用性能监控          |
-| enableBehavior     | boolean  | 否   | true       | 是否启用用户行为监控      |
-| maxBehaviorRecords | number   | 否   | 100        | 最大行为记录数量          |
-| clickMountList     | string[] | 否   | ["button"] | 要监听点击的 DOM 标签列表 |
+### 1. 错误监控 (ErrorVitals)
 
-## 模块详解
+自动捕获并上报各类错误：
 
-### 性能监控 (WebVitals)
+- JavaScript 运行时错误
+- 资源加载错误
+- Promise 未处理的 rejection
+- HTTP 请求错误
+- 跨域资源错误
 
-收集网页核心性能指标，包括：
+错误发生时，SDK 会自动记录：
 
-```typescript
-enum metricsName {
-  FP = "first-paint", // 首次绘制
-  FCP = "first-contentful-paint", // 首次内容绘制
-  LCP = "largest-contentful-paint", // 最大内容绘制
-  FID = "first-input-delay", // 首次输入延迟
-  CLS = "cumulative-layout-shift", // 累积布局偏移
-  NT = "navigation-timing", // 导航计时
-  RF = "resource-flow", // 资源加载流
-}
-```
+- 错误类型和消息
+- 错误堆栈
+- 发生错误时的页面信息
+- 错误前的用户行为序列（面包屑）
 
-### 用户行为监控 (UserVitals)
+### 2. 性能监控 (WebVitals)
 
-记录用户在页面上的各类交互行为：
+监控包括但不限于以下性能指标：
 
-```typescript
-enum metricsName {
-  PI = "page-information", // 页面基本信息
-  OI = "origin-information", // 用户来源信息
-  RCR = "router-change-record", // 路由变化记录
-  CBR = "click-behavior-record", // 点击行为记录
-  CDR = "custom-define-record", // 自定义事件记录
-  HT = "http-record", // HTTP请求记录
-}
-```
+| 指标                           | 描述                     |
+| ------------------------------ | ------------------------ |
+| FP (First Paint)               | 首次绘制时间             |
+| FCP (First Contentful Paint)   | 首次内容绘制时间         |
+| LCP (Largest Contentful Paint) | 最大内容绘制时间         |
+| FID (First Input Delay)        | 首次输入延迟             |
+| CLS (Cumulative Layout Shift)  | 累积布局偏移             |
+| 导航计时 (Navigation Timing)   | 页面加载各阶段的性能数据 |
+| 资源流 (Resource Flow)         | 页面资源加载性能数据     |
 
-### 数据存储
+### 3. 用户行为监控 (UserVitals)
 
-SDK 使用内存存储收集的监控数据，支持：
+追踪用户在应用中的行为：
 
-- 数据添加与获取
-- 自定义数据处理与转换
-- 数据上报触发控制
+- 页面信息记录
+- 用户来源跟踪
+- 路由变化记录
+- 用户点击行为
+- HTTP 请求记录
+- 自定义事件记录
 
-## 自定义事件上报
+## 数据上报
 
-```javascript
-// 上报自定义事件
-monitor.trackEvent({
-  eventCategory: "video", // 事件类别 - 互动的对象
-  eventAction: "play", // 事件动作 - 互动动作方式
-  eventLabel: "教程视频", // 事件标签 - 对事件的分类
-  eventValue: "120s", // 事件值 - 与事件相关的数值
-});
-```
+所有监控数据将通过 API 统一上报到您配置的服务端地址，支持批量上报和错误优先策略，确保关键问题能被及时发现。
 
-## 上报数据格式
+## 浏览器兼容性
 
-所有上报的数据都包含基础字段，并根据不同的监控类型包含特定字段：
+支持所有现代浏览器(Chrome, Firefox, Safari, Edge)，以及 IE11+。对于低版本浏览器，某些高级指标可能会降级或不可用。
 
-### 基础字段
-
-```typescript
-{
-  type: 'performance' | 'behavior' | 'custom',
-  timestamp: number,
-  page: string  // 当前页面路径
-}
-```
-
-### 性能数据示例
-
-```typescript
-{
-  type: 'performance',
-  name: 'first-contentful-paint',
-  startTime: 235.5,  // 毫秒
-  entry: {...}       // 原始性能条目
-}
-```
-
-### 行为数据示例
-
-```typescript
-{
-  type: 'behavior',
-  name: 'click-behavior-record',
-  value: {
-    tagInfo: {
-      id: 'submit-button',
-      classList: ['btn', 'primary'],
-      tagName: 'BUTTON',
-      text: '提交'
-    },
-    timestamp: 1609459200000
-  }
-}
-```
-
-## 开发
+## 本地开发
 
 ```bash
 # 安装依赖
@@ -182,42 +136,9 @@ pnpm dev
 # 构建
 pnpm build
 
-# 测试
+# 运行测试
 pnpm test
 ```
-
-## 项目结构
-
-```
-frontend-monitor-sdk/
-├── dist/                        # 构建输出目录
-├── examples/                    # 示例代码
-├── src/                         # 源代码
-│   ├── monitors/                # 监控模块
-│   │   ├── behavior/            # 用户行为监控
-│   │   │   ├── index.ts         # 行为监控入口
-│   │   │   ├── behaviorStore.ts # 行为数据存储
-│   │   │   └── getUserBehaviorApiService.ts # 行为数据收集服务
-│   │   ├── performance/         # 性能监控
-│   │   │   ├── index.ts         # 性能监控入口
-│   │   │   └── getPerformanceApiService.ts  # 性能数据收集服务
-│   │   └── index.ts             # 监控模块统一导出
-│   ├── utils.ts                 # 工具函数
-│   ├── store.ts                 # 数据存储
-│   └── index.ts                 # SDK主入口
-├── package.json                 # 项目配置
-├── rollup.config.js             # 打包配置
-└── tsconfig.json                # TypeScript配置
-```
-
-## 开发计划
-
-1. **错误监控模块**：添加对 JavaScript 错误、Promise 异常、资源加载错误等的捕获
-2. **热插拔设计**：完善模块化设计，允许运行时动态启用/禁用不同监控功能
-3. **数据采样控制**：根据配置进行数据采样，减少上报数据量
-4. **离线存储**：断网情况下本地存储，网络恢复后重新上报
-5. **Web Vitals 整合**：完全支持 Google Web Vitals 标准
-6. **更多框架适配**：针对 Vue、React 等框架的专门适配器
 
 ## 许可证
 
