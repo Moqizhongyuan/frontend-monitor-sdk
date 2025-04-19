@@ -5,7 +5,7 @@
 
 export class GetUserBehaviorApiService {
   /** 获取页面信息 */
-  getPageInfo = (): GetUserBehaviorApiService.PageInformation => {
+  getPageInfo = (): GetUserBehaviorApiService.IPageInformation => {
     const {
       host,
       hostname,
@@ -41,7 +41,7 @@ export class GetUserBehaviorApiService {
   };
 
   /** 获取 OI 用户来路信息 */
-  getOriginInfo = (): GetUserBehaviorApiService.OriginInformation => {
+  getOriginInfo = (): GetUserBehaviorApiService.IOriginInformation => {
     let navigationType = "";
     try {
       const navigationEntries = performance.getEntriesByType(
@@ -65,7 +65,7 @@ export class GetUserBehaviorApiService {
 
 export namespace GetUserBehaviorApiService {
   /** 页面信息 */
-  export interface PageInformation {
+  export interface IPageInformation {
     /** 当前页面URL的主机部分，包括子域名和域名 */
     host: string;
     /** 当前页面URL的主机名（不包含端口） */
@@ -95,7 +95,7 @@ export namespace GetUserBehaviorApiService {
     /** 文档可视区域宽高 (例如:1388x937)，表示当前浏览器窗口的实际可视尺寸 */
     docScreen: string;
   }
-  export interface OriginInformation {
+  export interface IOriginInformation {
     referrer: string;
     type: number | string;
   }

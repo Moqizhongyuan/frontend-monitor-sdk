@@ -3,23 +3,28 @@
  * @author yuzhongyuan
  */
 
+import { Transport } from "../../../core";
+import { Engine } from "../../core";
 import MetricsStore, { IMetrics } from "../../store";
 import { afterLoad } from "../../utils";
 import { GetPerformanceApiService } from "./getPerformanceApiService";
 
 export class WebVitals {
+  /** 引擎实例 */
+  private engineInstance: Engine;
+
   /** performance暂存的Map类 */
   public metrics: MetricsStore<WebVitals.metricsName>;
 
   /** 获取performance类型实例 */
   getPerformanceApiService = new GetPerformanceApiService();
 
-  constructor() {
+  constructor(engineInstance: Engine) {
+    this.engineInstance = engineInstance;
     this.metrics = new MetricsStore<WebVitals.metricsName>();
     this.initLCP();
     this.initCLS();
     this.initResourceFlow();
-
     afterLoad(() => {
       this.initNavigationTiming();
       this.initFP();
@@ -31,8 +36,12 @@ export class WebVitals {
 
   /** 性能数据的上报策略 */
   perfSendHandler = (): void => {
-    // 如果你要监听 FID 数据。你就需要等待 FID 参数捕获完成后进行上报;
-    // 如果不需要监听 FID，那么这里你就可以发起上报请求了;
+    this.engineInstance.transportInstance.kernelTransportHandler(
+      this.engineInstance.transportInstance.formatTransportData(
+        Transport.transportCategory.PERF,
+        this.metrics.getValues()
+      )
+    );
   };
 
   /** 初始化 FP 的获取以及返回 */
@@ -85,9 +94,9 @@ export class WebVitals {
     let clsEntries = [];
 
     let sessionValue = 0;
-    let sessionEntries: Array<WebVitals.LayoutShift> = [];
+    let sessionEntries: Array<WebVitals.ILayoutShift> = [];
 
-    const entryHandler = (entry: WebVitals.LayoutShift) => {
+    const entryHandler = (entry: WebVitals.ILayoutShift) => {
       if (!entry.hadRecentInput) {
         const firstSessionEntry = sessionEntries[0];
         const lastSessionEntry = sessionEntries[sessionEntries.length - 1];
@@ -130,7 +139,8 @@ export class WebVitals {
 
   /** 初始化 RF 的获取以及返回 */
   initResourceFlow = (): void => {
-    const resourceFlow: Array<GetPerformanceApiService.ResourceFlowTiming> = [];
+    const resourceFlow: Array<GetPerformanceApiService.IResourceFlowTiming> =
+      [];
     const resObserve =
       this.getPerformanceApiService.getResourceFlow(resourceFlow);
 
@@ -150,17 +160,32 @@ export class WebVitals {
 }
 
 export namespace WebVitals {
+  /** 性能指标 */
   export enum metricsName {
+    /** 首次绘制 */
     FP = "first-paint",
+
+    /** 首次内容绘制 */
     FCP = "first-contentful-paint",
+
+    /** 最大内容绘制 */
     LCP = "largest-contentful-paint",
+
+    /** 首次输入延迟 */
     FID = "first-input-delay",
+
+    /** 累积布局偏移 */
     CLS = "cumulative-layout-shift",
+
+    /** 导航计时 */
     NT = "navigation-timing",
+
+    /** 资源流 */
     RF = "resource-flow",
   }
 
-  export interface LayoutShift extends PerformanceEntry {
+  /** 布局偏移 */
+  export interface ILayoutShift extends PerformanceEntry {
     value: number;
     hadRecentInput: boolean;
   }

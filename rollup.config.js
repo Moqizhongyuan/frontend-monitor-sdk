@@ -6,7 +6,7 @@ import terser from "@rollup/plugin-terser";
 const pkg = await import("./package.json", { assert: { type: "json" } });
 
 export default {
-  input: "src/monitors/index.ts",
+  input: "src/index.ts",
   output: [
     {
       file: pkg.default.main,

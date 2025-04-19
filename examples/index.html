@@ -112,9 +112,123 @@
     <!-- 加载SDK -->
     <script src="../dist/index.umd.js"></script>
     <script>
-      const { WebVitals } = Yzy_FrontendMonitor;
-      const webVitals = new WebVitals();
-      console.log(webVitals.metrics);
+      const { WebEngine } = Yzy_FrontendMonitor;
+      const engine = new WebEngine({
+        transportUrl: "http://localhost:3000/api/v1/frontend-monitor",
+      });
+      console.log(engine);
+
+      // 等待DOM加载完成
+      document.addEventListener("DOMContentLoaded", function () {
+        // 1. 性能监控
+        document
+          .getElementById("refresh-page")
+          .addEventListener("click", function () {
+            window.location.reload();
+          });
+
+        // 2. 错误监控
+        document
+          .getElementById("js-error")
+          .addEventListener("click", function () {
+            try {
+              // 触发JavaScript错误
+              const obj = null;
+              obj.nonExistentMethod();
+            } catch (e) {
+              throw new Error("手动触发的JavaScript错误: " + e.message);
+            }
+          });
+
+        document
+          .getElementById("promise-error")
+          .addEventListener("click", function () {
+            // 触发Promise未捕获异常
+            new Promise((resolve, reject) => {
+              reject("手动触发的Promise错误");
+            });
+          });
+
+        document
+          .getElementById("console-error")
+          .addEventListener("click", function () {
+            // 使用console.error记录错误
+            console.error("手动触发的Console错误信息");
+          });
+
+        document
+          .getElementById("resource-error")
+          .addEventListener("click", function () {
+            // 加载不存在的资源触发错误
+            const img = document.createElement("img");
+            img.src = "https://example.com/非存在的图片.jpg";
+            img.style.display = "none";
+            document.body.appendChild(img);
+          });
+
+        // 3. 资源监控
+        document
+          .getElementById("load-resource")
+          .addEventListener("click", function () {
+            const container = document.getElementById("resource-container");
+            container.innerHTML = ""; // 清空容器
+
+            // 加载图片资源
+            const img = document.createElement("img");
+            img.src = "https://picsum.photos/200/100?random=" + Math.random();
+            img.alt = "随机图片";
+            img.width = 200;
+
+            // 加载JS资源
+            const script = document.createElement("script");
+            script.src =
+              "https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js";
+
+            container.appendChild(img);
+            document.head.appendChild(script);
+
+            // 显示加载状态
+            const status = document.createElement("p");
+            status.textContent = "资源加载中...";
+            container.appendChild(status);
+
+            img.onload = function () {
+              status.textContent = "图片资源加载完成";
+            };
+
+            script.onload = function () {
+              const time = document.createElement("p");
+              time.textContent =
+                "当前时间: " + moment().format("YYYY-MM-DD HH:mm:ss");
+              container.appendChild(time);
+            };
+          });
+
+        // 4. 用户行为监控
+        document
+          .getElementById("custom-event")
+          .addEventListener("click", function () {
+            // 假设监控SDK提供了一个trackEvent方法
+            if (
+              typeof window.WebEngine === "function" &&
+              typeof window.WebEngine.instance === "object" &&
+              typeof window.WebEngine.instance.trackEvent === "function"
+            ) {
+              window.WebEngine.instance.trackEvent({
+                eventCategory: "user-interaction",
+                eventAction: "click",
+                eventLabel: "custom-event-button",
+                eventValue:
+                  "用户点击了自定义事件按钮 - " + new Date().toISOString(),
+              });
+
+              alert("自定义事件已触发并上报!");
+            } else {
+              console.warn("监控SDK未初始化或不支持trackEvent方法");
+              alert("监控SDK未正确初始化，无法触发自定义事件");
+            }
+          });
+      });
     </script>
   </body>
 </html>

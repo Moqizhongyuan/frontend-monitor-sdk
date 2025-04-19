@@ -55,7 +55,7 @@ export const proxyXmlHttp = (
     (window as any).XMLHttpRequest = function () {
       const xhr = new oXMLHttpRequest();
       const { open, send } = xhr;
-      let metrics = {} as httpMetrics;
+      let metrics = {} as IHttpMetrics;
       xhr.open = (method, url) => {
         metrics.method = method;
         metrics.url = url;
@@ -83,7 +83,7 @@ export const proxyXmlHttp = (
   }
 };
 
-export interface httpMetrics {
+export interface IHttpMetrics {
   method: string;
   url: string | URL;
   body: Document | XMLHttpRequestBodyInit | null | undefined | ReadableStream;
@@ -106,7 +106,7 @@ export const proxyFetch = (
     }
     (window as any).fetch = async (input: any, init: RequestInit) => {
       if (typeof sendHandler === "function") sendHandler(init);
-      let metrics = {} as httpMetrics;
+      let metrics = {} as IHttpMetrics;
 
       metrics.method = init?.method || "";
       metrics.url =

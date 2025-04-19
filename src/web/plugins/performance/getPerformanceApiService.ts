@@ -7,7 +7,7 @@ export class GetPerformanceApiService {
   /** 通过performance.observe获取性能指标 */
   private observe(
     type: string,
-    callback: GetPerformanceApiService.PerformanceEntryHandler
+    callback: GetPerformanceApiService.IPerformanceEntryHandler
   ): PerformanceObserver | undefined {
     // 类型合规，就返回 observe
     if (PerformanceObserver.supportedEntryTypes?.includes(type)) {
@@ -35,31 +35,31 @@ export class GetPerformanceApiService {
 
   /** 获取 LCP */
   getLCP = (
-    entryHandler: GetPerformanceApiService.PerformanceEntryHandler
+    entryHandler: GetPerformanceApiService.IPerformanceEntryHandler
   ): PerformanceObserver | undefined => {
     return this.observe("largest-contentful-paint", entryHandler);
   };
 
   /** 获取 FID */
   getFID = (
-    entryHandler: GetPerformanceApiService.PerformanceEntryHandler
+    entryHandler: GetPerformanceApiService.IPerformanceEntryHandler
   ): PerformanceObserver | undefined => {
     return this.observe("first-input", entryHandler);
   };
 
   /** 获取 CLS */
   getCLS = (
-    entryHandler: GetPerformanceApiService.PerformanceEntryHandler
+    entryHandler: GetPerformanceApiService.IPerformanceEntryHandler
   ): PerformanceObserver | undefined => {
     return this.observe("layout-shift", entryHandler);
   };
 
   getNavigationTiming = ():
-    | GetPerformanceApiService.MPerformanceNavigationTiming
+    | GetPerformanceApiService.IMPerformanceNavigationTiming
     | undefined => {
     const resolveNavigationTiming = (
       entry: PerformanceNavigationTiming
-    ): GetPerformanceApiService.MPerformanceNavigationTiming => {
+    ): GetPerformanceApiService.IMPerformanceNavigationTiming => {
       const {
         domainLookupStart,
         domainLookupEnd,
@@ -101,7 +101,7 @@ export class GetPerformanceApiService {
   };
 
   getResourceFlow = (
-    resourceFlow: Array<GetPerformanceApiService.ResourceFlowTiming>
+    resourceFlow: Array<GetPerformanceApiService.IResourceFlowTiming>
   ): PerformanceObserver | undefined => {
     const entryHandler = (entry: PerformanceResourceTiming) => {
       const {
@@ -144,7 +144,7 @@ export class GetPerformanceApiService {
 }
 
 export namespace GetPerformanceApiService {
-  export interface MPerformanceNavigationTiming {
+  export interface IMPerformanceNavigationTiming {
     FP?: number;
     TTI?: number;
     DomReady?: number;
@@ -158,11 +158,11 @@ export namespace GetPerformanceApiService {
     DomParse?: number;
     Res?: number;
   }
-  export interface PerformanceEntryHandler {
+  export interface IPerformanceEntryHandler {
     (entry: any): void;
   }
 
-  export interface ResourceFlowTiming {
+  export interface IResourceFlowTiming {
     name: string;
     transferSize: number;
     initiatorType: string;

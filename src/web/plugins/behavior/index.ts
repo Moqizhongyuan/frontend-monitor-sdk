@@ -3,10 +3,12 @@
  * @author yuzhongyuan
  */
 
+import { Transport } from "../../../core";
+import { Engine } from "../../core";
 import metricsStore, { IMetrics } from "../../store";
 import {
   afterLoad,
-  httpMetrics,
+  IHttpMetrics,
   proxyFetch,
   proxyHash,
   proxyHistory,
@@ -17,7 +19,7 @@ import { BehaviorStore } from "./behaviorStore";
 import { GetUserBehaviorApiService } from "./getUserBehaviorApiService";
 
 export class UserVitals {
-  // private engineInstance: EngineInstance;
+  private engineInstance: Engine;
 
   /** 获取用户信息类 */
   getUserBehaviorApiService = new GetUserBehaviorApiService();
@@ -37,8 +39,8 @@ export class UserVitals {
   /** 允许捕获click事件的DOM标签 eg:button div img canvas */
   clickMountList: Array<string>;
 
-  constructor() {
-    // this.engineInstance = engineInstance;
+  constructor(engineInstance: Engine) {
+    this.engineInstance = engineInstance;
     this.metrics = new metricsStore<UserVitals.metricsName>();
     this.maxBehaviorRecords = 100;
     this.breadcrumbs = new BehaviorStore({
@@ -57,7 +59,12 @@ export class UserVitals {
 
   /** 封装用户行为的上报入口 */
   userSendHandler = (data: IMetrics) => {
-    // 进行通知内核实例进行上报;
+    this.engineInstance.transportInstance.kernelTransportHandler(
+      this.engineInstance.transportInstance.formatTransportData(
+        Transport.transportCategory.PV,
+        data
+      )
+    );
   };
 
   /** 补齐 pathname 和 timestamp 参数 */
@@ -73,7 +80,7 @@ export class UserVitals {
 
   /** 初始化用户自定义埋点数据的获取上报 */
   initCustomerHandler = (): Function => {
-    const handler = (options: UserVitals.customAnalyticsData) => {
+    const handler = (options: UserVitals.ICustomAnalyticsData) => {
       this.metrics.add(UserVitals.metricsName.CDR, options);
       this.userSendHandler(options);
       this.breadcrumbs.push({
@@ -88,7 +95,7 @@ export class UserVitals {
 
   /** 初始化 PI 页面基本信息的获取以及返回 */
   initPageInfo = (): void => {
-    const info: GetUserBehaviorApiService.PageInformation =
+    const info: GetUserBehaviorApiService.IPageInformation =
       this.getUserBehaviorApiService.getPageInfo();
     const metrics: IMetrics = info;
     this.metrics.set(UserVitals.metricsName.PI, metrics);
@@ -104,7 +111,7 @@ export class UserVitals {
       };
       this.metrics.add(UserVitals.metricsName.RCR, metrics);
       delete metrics.pageInfo;
-      const behavior: BehaviorStore.behaviorStack = {
+      const behavior: BehaviorStore.IBehaviorStack = {
         name: UserVitals.metricsName.RCR,
         value: metrics,
         ...this.getExtends(),
@@ -118,11 +125,11 @@ export class UserVitals {
   /** 初始化 PV 的获取以及返回 */
   initPV = (): void => {
     const handler = () => {
-      const metrics = {
+      const metrics: IMetrics = {
         timestamp: new Date().getTime(),
         pageInfo: this.getUserBehaviorApiService.getPageInfo(),
         originInformation: this.getUserBehaviorApiService.getOriginInfo(),
-      } as IMetrics;
+      };
       this.userSendHandler(metrics);
     };
     afterLoad(() => {
@@ -134,7 +141,7 @@ export class UserVitals {
 
   /** 初始化 OI 用户来路的获取以及返回 */
   initOriginInfo = (): void => {
-    const info: GetUserBehaviorApiService.OriginInformation =
+    const info: GetUserBehaviorApiService.IOriginInformation =
       this.getUserBehaviorApiService.getOriginInfo();
     const metrics: IMetrics = info;
     this.metrics.set(UserVitals.metricsName.OI, metrics);
@@ -164,7 +171,7 @@ export class UserVitals {
       };
       this.metrics.add(UserVitals.metricsName.CBR, metrics);
       delete metrics.pageInfo;
-      const behavior: BehaviorStore.behaviorStack = {
+      const behavior: BehaviorStore.IBehaviorStack = {
         name: UserVitals.metricsName.CBR,
         value: metrics,
         ...this.getExtends(),
@@ -182,7 +189,7 @@ export class UserVitals {
 
   /** 初始化 http 请求的数据获取和上报 */
   initHttpHandler = (): void => {
-    const loadHandler = (metrics: httpMetrics) => {
+    const loadHandler = (metrics: IHttpMetrics) => {
       if (metrics.status < 400) {
         delete metrics.response;
         delete metrics.body;
@@ -213,7 +220,7 @@ export namespace UserVitals {
     /** HTTP请求记录 - 监控页面发起的网络请求信息 */
     HT = "http-record",
   }
-  export interface customAnalyticsData {
+  export interface ICustomAnalyticsData {
     /** 事件类别 互动的对象 eg:Video */
     eventCategory: string;
     /** 事件动作 互动动作方式 eg:play */
