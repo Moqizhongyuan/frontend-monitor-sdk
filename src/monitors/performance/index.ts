@@ -1,41 +1,21 @@
+/**
+ * @file web vitals
+ * @author yuzhongyuan
+ */
+
 import MetricsStore, { IMetrics } from "../../store";
-import {
-  getPerformanceApiService,
-  ResourceFlowTiming,
-} from "./getPerformanceApiService";
-
-enum metricsName {
-  FP = "first-paint",
-  FCP = "first-contentful-paint",
-  LCP = "largest-contentful-paint",
-  FID = "first-input-delay",
-  CLS = "cumulative-layout-shift",
-  NT = "navigation-timing",
-  RF = "resource-flow",
-}
-
-const afterLoad = (callback: any) => {
-  if (document.readyState === "complete") {
-    setTimeout(callback);
-  } else {
-    window.addEventListener("pageshow", callback, {
-      once: true,
-      capture: true,
-    });
-  }
-};
-
-interface LayoutShift extends PerformanceEntry {
-  value: number;
-  hadRecentInput: boolean;
-}
+import { afterLoad } from "../../utils";
+import { GetPerformanceApiService } from "./getPerformanceApiService";
 
 export class WebVitals {
-  /** 本地暂存数据在 Map 里 （也可以自己用对象来存储） */
-  public metrics: MetricsStore<metricsName>;
+  /** performance暂存的Map类 */
+  public metrics: MetricsStore<WebVitals.metricsName>;
+
+  /** 获取performance类型实例 */
+  getPerformanceApiService = new GetPerformanceApiService();
 
   constructor() {
-    this.metrics = new MetricsStore<metricsName>();
+    this.metrics = new MetricsStore<WebVitals.metricsName>();
     this.initLCP();
     this.initCLS();
     this.initResourceFlow();
@@ -57,22 +37,22 @@ export class WebVitals {
 
   /** 初始化 FP 的获取以及返回 */
   initFP = (): void => {
-    const entry = getPerformanceApiService.getFP();
+    const entry = this.getPerformanceApiService.getFP();
     const metrics = {
       startTime: entry?.startTime.toFixed(2),
       entry,
     } as IMetrics;
-    this.metrics.set(metricsName.FP, metrics);
+    this.metrics.set(WebVitals.metricsName.FP, metrics);
   };
 
   /** 初始化 FCP 的获取以及返回 */
   initFCP = (): void => {
-    const entry = getPerformanceApiService.getFCP();
+    const entry = this.getPerformanceApiService.getFCP();
     const metrics = {
       startTime: entry?.startTime.toFixed(2),
       entry,
     } as IMetrics;
-    this.metrics.set(metricsName.FCP, metrics);
+    this.metrics.set(WebVitals.metricsName.FCP, metrics);
   };
 
   /** 初始化 LCP 的获取以及返回 */
@@ -82,9 +62,9 @@ export class WebVitals {
         startTime: entry?.startTime.toFixed(2),
         entry,
       } as IMetrics;
-      this.metrics.set(metricsName.LCP, metrics);
+      this.metrics.set(WebVitals.metricsName.LCP, metrics);
     };
-    getPerformanceApiService.getLCP(entryHandler);
+    this.getPerformanceApiService.getLCP(entryHandler);
   };
 
   /** 初始化 FID 的获取 及返回 */
@@ -94,9 +74,9 @@ export class WebVitals {
         delay: entry.processingStart - entry.startTime,
         entry,
       } as IMetrics;
-      this.metrics.set(metricsName.FID, metrics);
+      this.metrics.set(WebVitals.metricsName.FID, metrics);
     };
-    getPerformanceApiService.getFID(entryHandler);
+    this.getPerformanceApiService.getFID(entryHandler);
   };
 
   /** 初始化 CLS 的获取以及返回 */
@@ -105,9 +85,9 @@ export class WebVitals {
     let clsEntries = [];
 
     let sessionValue = 0;
-    let sessionEntries: Array<LayoutShift> = [];
+    let sessionEntries: Array<WebVitals.LayoutShift> = [];
 
-    const entryHandler = (entry: LayoutShift) => {
+    const entryHandler = (entry: WebVitals.LayoutShift) => {
       if (!entry.hadRecentInput) {
         const firstSessionEntry = sessionEntries[0];
         const lastSessionEntry = sessionEntries[sessionEntries.length - 1];
@@ -133,31 +113,33 @@ export class WebVitals {
             clsValue,
             clsEntries,
           };
-          this.metrics.set(metricsName.CLS, metrics);
+          this.metrics.set(WebVitals.metricsName.CLS, metrics);
         }
       }
     };
-    getPerformanceApiService.getCLS(entryHandler);
+    this.getPerformanceApiService.getCLS(entryHandler);
   };
 
   /** 初始化 NT 的获取以及返回 */
   initNavigationTiming = (): void => {
-    const navigationTiming = getPerformanceApiService.getNavigationTiming();
+    const navigationTiming =
+      this.getPerformanceApiService.getNavigationTiming();
     const metrics = navigationTiming as IMetrics;
-    this.metrics.set(metricsName.NT, metrics);
+    this.metrics.set(WebVitals.metricsName.NT, metrics);
   };
 
   /** 初始化 RF 的获取以及返回 */
   initResourceFlow = (): void => {
-    const resourceFlow: Array<ResourceFlowTiming> = [];
-    const resObserve = getPerformanceApiService.getResourceFlow(resourceFlow);
+    const resourceFlow: Array<GetPerformanceApiService.ResourceFlowTiming> = [];
+    const resObserve =
+      this.getPerformanceApiService.getResourceFlow(resourceFlow);
 
     const stopListening = () => {
       if (resObserve) {
         resObserve.disconnect();
       }
       const metrics = resourceFlow as IMetrics;
-      this.metrics.set(metricsName.RF, metrics);
+      this.metrics.set(WebVitals.metricsName.RF, metrics);
     };
     // 当页面 pageshow 触发时，中止
     window.addEventListener("pageshow", stopListening, {
@@ -165,4 +147,21 @@ export class WebVitals {
       capture: true,
     });
   };
+}
+
+export namespace WebVitals {
+  export enum metricsName {
+    FP = "first-paint",
+    FCP = "first-contentful-paint",
+    LCP = "largest-contentful-paint",
+    FID = "first-input-delay",
+    CLS = "cumulative-layout-shift",
+    NT = "navigation-timing",
+    RF = "resource-flow",
+  }
+
+  export interface LayoutShift extends PerformanceEntry {
+    value: number;
+    hadRecentInput: boolean;
+  }
 }

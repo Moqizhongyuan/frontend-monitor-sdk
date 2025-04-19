@@ -1,41 +1,13 @@
-export interface PerformanceEntryHandler {
-  (entry: any): void;
-}
+/**
+ * @file get performance api service
+ * @author yuzhongyuan
+ */
 
-export interface MPerformanceNavigationTiming {
-  FP?: number;
-  TTI?: number;
-  DomReady?: number;
-  Load?: number;
-  FirstByte?: number;
-  DNS?: number;
-  TCP?: number;
-  SSL?: number;
-  TTFB?: number;
-  Trans?: number;
-  DomParse?: number;
-  Res?: number;
-}
-
-export interface ResourceFlowTiming {
-  name: string;
-  transferSize: number;
-  initiatorType: string;
-  startTime: number;
-  responseEnd: number;
-  dnsLookup: number;
-  initialConnect: number;
-  ssl: number;
-  request: number;
-  ttfb: number;
-  contentDownload: number;
-}
-
-class GetPerformanceApiService {
+export class GetPerformanceApiService {
   /** 通过performance.observe获取性能指标 */
   private observe(
     type: string,
-    callback: PerformanceEntryHandler
+    callback: GetPerformanceApiService.PerformanceEntryHandler
   ): PerformanceObserver | undefined {
     // 类型合规，就返回 observe
     if (PerformanceObserver.supportedEntryTypes?.includes(type)) {
@@ -63,29 +35,31 @@ class GetPerformanceApiService {
 
   /** 获取 LCP */
   getLCP = (
-    entryHandler: PerformanceEntryHandler
+    entryHandler: GetPerformanceApiService.PerformanceEntryHandler
   ): PerformanceObserver | undefined => {
     return this.observe("largest-contentful-paint", entryHandler);
   };
 
   /** 获取 FID */
   getFID = (
-    entryHandler: PerformanceEntryHandler
+    entryHandler: GetPerformanceApiService.PerformanceEntryHandler
   ): PerformanceObserver | undefined => {
     return this.observe("first-input", entryHandler);
   };
 
   /** 获取 CLS */
   getCLS = (
-    entryHandler: PerformanceEntryHandler
+    entryHandler: GetPerformanceApiService.PerformanceEntryHandler
   ): PerformanceObserver | undefined => {
     return this.observe("layout-shift", entryHandler);
   };
 
-  getNavigationTiming = (): MPerformanceNavigationTiming | undefined => {
+  getNavigationTiming = ():
+    | GetPerformanceApiService.MPerformanceNavigationTiming
+    | undefined => {
     const resolveNavigationTiming = (
       entry: PerformanceNavigationTiming
-    ): MPerformanceNavigationTiming => {
+    ): GetPerformanceApiService.MPerformanceNavigationTiming => {
       const {
         domainLookupStart,
         domainLookupEnd,
@@ -127,7 +101,7 @@ class GetPerformanceApiService {
   };
 
   getResourceFlow = (
-    resourceFlow: Array<ResourceFlowTiming>
+    resourceFlow: Array<GetPerformanceApiService.ResourceFlowTiming>
   ): PerformanceObserver | undefined => {
     const entryHandler = (entry: PerformanceResourceTiming) => {
       const {
@@ -168,4 +142,37 @@ class GetPerformanceApiService {
     return this.observe("resource", entryHandler);
   };
 }
-export const getPerformanceApiService = new GetPerformanceApiService();
+
+export namespace GetPerformanceApiService {
+  export interface MPerformanceNavigationTiming {
+    FP?: number;
+    TTI?: number;
+    DomReady?: number;
+    Load?: number;
+    FirstByte?: number;
+    DNS?: number;
+    TCP?: number;
+    SSL?: number;
+    TTFB?: number;
+    Trans?: number;
+    DomParse?: number;
+    Res?: number;
+  }
+  export interface PerformanceEntryHandler {
+    (entry: any): void;
+  }
+
+  export interface ResourceFlowTiming {
+    name: string;
+    transferSize: number;
+    initiatorType: string;
+    startTime: number;
+    responseEnd: number;
+    dnsLookup: number;
+    initialConnect: number;
+    ssl: number;
+    request: number;
+    ttfb: number;
+    contentDownload: number;
+  }
+}
