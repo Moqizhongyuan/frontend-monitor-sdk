@@ -1,13 +1,27 @@
 # 前端监控 SDK
 
-这是一个功能全面的前端监控 SDK，用于收集和上报前端应用的性能指标、错误信息、资源加载情况和用户行为。
+一个轻量、模块化的前端监控 SDK，用于收集和上报前端应用的性能指标和用户行为数据。
 
 ## 功能特点
 
-- **性能监控**: 收集首屏渲染时间、DOM 加载时间、资源加载时间等关键性能指标
-- **错误监控**: 捕获 JavaScript 运行时错误、Promise 异常、资源加载错误等
-- **资源监控**: 跟踪页面资源（JS、CSS、图片等）的加载情况和性能
-- **用户行为监控**: 记录用户点击、输入、页面浏览等行为数据
+- **性能监控**：收集关键性能指标
+
+  - FP (First Paint) - 首次绘制时间
+  - FCP (First Contentful Paint) - 首次内容绘制时间
+  - LCP (Largest Contentful Paint) - 最大内容绘制时间
+  - FID (First Input Delay) - 首次输入延迟
+  - CLS (Cumulative Layout Shift) - 累积布局偏移
+  - 导航计时 (Navigation Timing)
+  - 资源加载性能 (Resource Flow)
+
+- **用户行为监控**：追踪用户页面交互
+
+  - 页面访问信息 (PI - Page Information)
+  - 用户来源信息 (OI - Origin Information)
+  - 路由变化记录 (RCR - Router Change Record)
+  - 点击行为记录 (CBR - Click Behavior Record)
+  - 自定义埋点事件 (CDR - Custom Define Record)
+  - HTTP 请求监控 (HT - HTTP Record)
 
 ## 安装
 
@@ -29,15 +43,18 @@ const monitor = new FrontendMonitor({
   appId: "your-app-id",
   userId: "user-123",
   reportUrl: "https://your-api.com/report",
-  // 可选配置
+  // 配置参数
   enablePerformance: true,
-  enableError: true,
-  enableResource: true,
   enableBehavior: true,
 });
 
 // 手动上报自定义事件
-monitor.trackEvent("category", "action", "label", 100);
+monitor.trackEvent({
+  eventCategory: "video",
+  eventAction: "play",
+  eventLabel: "教程视频",
+  eventValue: "120s",
+});
 
 // 在应用退出时销毁实例
 window.addEventListener("unload", () => {
@@ -47,80 +64,109 @@ window.addEventListener("unload", () => {
 
 ## 配置选项
 
-| 参数              | 类型    | 必填 | 默认值 | 描述                 |
-| ----------------- | ------- | ---- | ------ | -------------------- |
-| appId             | string  | 是   | -      | 应用标识符           |
-| userId            | string  | 是   | -      | 用户标识符           |
-| reportUrl         | string  | 是   | -      | 数据上报接口地址     |
-| enablePerformance | boolean | 否   | true   | 是否启用性能监控     |
-| enableError       | boolean | 否   | true   | 是否启用错误监控     |
-| enableResource    | boolean | 否   | true   | 是否启用资源监控     |
-| enableBehavior    | boolean | 否   | true   | 是否启用用户行为监控 |
+| 参数               | 类型     | 必填 | 默认值     | 描述                      |
+| ------------------ | -------- | ---- | ---------- | ------------------------- |
+| appId              | string   | 是   | -          | 应用标识符                |
+| userId             | string   | 是   | -          | 用户标识符                |
+| reportUrl          | string   | 是   | -          | 数据上报接口地址          |
+| enablePerformance  | boolean  | 否   | true       | 是否启用性能监控          |
+| enableBehavior     | boolean  | 否   | true       | 是否启用用户行为监控      |
+| maxBehaviorRecords | number   | 否   | 100        | 最大行为记录数量          |
+| clickMountList     | string[] | 否   | ["button"] | 要监听点击的 DOM 标签列表 |
 
-## 上报数据格式
+## 模块详解
 
-所有上报的数据都包含以下基础字段：
+### 性能监控 (WebVitals)
+
+收集网页核心性能指标，包括：
 
 ```typescript
-{
-  type: 'performance' | 'error' | 'resource' | 'behavior' | 'custom',
-  appId: string,
-  userId: string,
-  timestamp: number
+enum metricsName {
+  FP = "first-paint", // 首次绘制
+  FCP = "first-contentful-paint", // 首次内容绘制
+  LCP = "largest-contentful-paint", // 最大内容绘制
+  FID = "first-input-delay", // 首次输入延迟
+  CLS = "cumulative-layout-shift", // 累积布局偏移
+  NT = "navigation-timing", // 导航计时
+  RF = "resource-flow", // 资源加载流
 }
 ```
 
-### 性能数据
+### 用户行为监控 (UserVitals)
+
+记录用户在页面上的各类交互行为：
+
+```typescript
+enum metricsName {
+  PI = "page-information", // 页面基本信息
+  OI = "origin-information", // 用户来源信息
+  RCR = "router-change-record", // 路由变化记录
+  CBR = "click-behavior-record", // 点击行为记录
+  CDR = "custom-define-record", // 自定义事件记录
+  HT = "http-record", // HTTP请求记录
+}
+```
+
+### 数据存储
+
+SDK 使用内存存储收集的监控数据，支持：
+
+- 数据添加与获取
+- 自定义数据处理与转换
+- 数据上报触发控制
+
+## 自定义事件上报
+
+```javascript
+// 上报自定义事件
+monitor.trackEvent({
+  eventCategory: "video", // 事件类别 - 互动的对象
+  eventAction: "play", // 事件动作 - 互动动作方式
+  eventLabel: "教程视频", // 事件标签 - 对事件的分类
+  eventValue: "120s", // 事件值 - 与事件相关的数值
+});
+```
+
+## 上报数据格式
+
+所有上报的数据都包含基础字段，并根据不同的监控类型包含特定字段：
+
+### 基础字段
+
+```typescript
+{
+  type: 'performance' | 'behavior' | 'custom',
+  timestamp: number,
+  page: string  // 当前页面路径
+}
+```
+
+### 性能数据示例
 
 ```typescript
 {
   type: 'performance',
-  FP?: number,      // 首次绘制时间
-  FCP?: number,     // 首次内容绘制时间
-  FMP?: number,     // 首次有意义绘制时间
-  DOMReady?: number, // DOM解析完成时间
-  load?: number,     // 页面完全加载时间
-  TTFB?: number,     // 首字节时间
-  TTI?: number       // 首次可交互时间
+  name: 'first-contentful-paint',
+  startTime: 235.5,  // 毫秒
+  entry: {...}       // 原始性能条目
 }
 ```
 
-### 错误数据
-
-```typescript
-{
-  type: 'error',
-  name: string,     // 错误名称
-  message: string,  // 错误消息
-  stack?: string,   // 错误堆栈
-  url: string,      // 错误发生的URL
-  errorType: 'js' | 'promise' | 'resource' | 'ajax' | 'vue' | 'react' | 'other'
-}
-```
-
-### 资源数据
-
-```typescript
-{
-  type: 'resource',
-  name: string,       // 资源名称
-  url: string,        // 资源URL
-  initiatorType: string, // 资源类型
-  duration: number,   // 资源加载时间
-  size?: number,      // 资源大小
-  status?: number     // 资源状态
-}
-```
-
-### 行为数据
+### 行为数据示例
 
 ```typescript
 {
   type: 'behavior',
-  actionType: 'click' | 'input' | 'navigation' | 'pageview' | 'custom',
-  path: string,      // 页面路径
-  element?: string,  // 元素信息
-  time: number       // 发生时间
+  name: 'click-behavior-record',
+  value: {
+    tagInfo: {
+      id: 'submit-button',
+      classList: ['btn', 'primary'],
+      tagName: 'BUTTON',
+      text: '提交'
+    },
+    timestamp: 1609459200000
+  }
 }
 ```
 
@@ -140,48 +186,39 @@ pnpm build
 pnpm test
 ```
 
-## 许可证
-
-MIT
-
 ## 项目结构
 
 ```
 frontend-monitor-sdk/
-├── dist/                  # 构建输出目录
-├── examples/              # 示例代码
-│   └── index.html         # 使用示例
-├── src/                   # 源代码
-│   ├── __tests__/         # 测试文件
-│   ├── monitors/          # 监控模块
-│   │   ├── behavior.ts    # 行为监控
-│   │   ├── error.ts       # 错误监控
-│   │   ├── performance.ts # 性能监控
-│   │   └── resource.ts    # 资源监控
-│   ├── utils/             # 工具类
-│   │   └── reporter.ts    # 数据上报工具
-│   ├── index.ts           # 入口文件
-│   └── types.ts           # 类型定义
-├── .cursorrules           # 编辑器配置
-├── jest.config.js         # Jest测试配置
-├── package.json           # 项目配置
-├── pnpm-lock.yaml         # 依赖锁定文件
-├── README.md              # 项目说明
-├── rollup.config.js       # Rollup打包配置
-└── tsconfig.json          # TypeScript配置
+├── dist/                        # 构建输出目录
+├── examples/                    # 示例代码
+├── src/                         # 源代码
+│   ├── monitors/                # 监控模块
+│   │   ├── behavior/            # 用户行为监控
+│   │   │   ├── index.ts         # 行为监控入口
+│   │   │   ├── behaviorStore.ts # 行为数据存储
+│   │   │   └── getUserBehaviorApiService.ts # 行为数据收集服务
+│   │   ├── performance/         # 性能监控
+│   │   │   ├── index.ts         # 性能监控入口
+│   │   │   └── getPerformanceApiService.ts  # 性能数据收集服务
+│   │   └── index.ts             # 监控模块统一导出
+│   ├── utils.ts                 # 工具函数
+│   ├── store.ts                 # 数据存储
+│   └── index.ts                 # SDK主入口
+├── package.json                 # 项目配置
+├── rollup.config.js             # 打包配置
+└── tsconfig.json                # TypeScript配置
 ```
 
-## 扩展建议
+## 开发计划
 
-以下是可能的扩展方向：
+1. **错误监控模块**：添加对 JavaScript 错误、Promise 异常、资源加载错误等的捕获
+2. **热插拔设计**：完善模块化设计，允许运行时动态启用/禁用不同监控功能
+3. **数据采样控制**：根据配置进行数据采样，减少上报数据量
+4. **离线存储**：断网情况下本地存储，网络恢复后重新上报
+5. **Web Vitals 整合**：完全支持 Google Web Vitals 标准
+6. **更多框架适配**：针对 Vue、React 等框架的专门适配器
 
-1. **框架集成**: 添加对 Vue、React 等主流框架的错误处理支持
-2. **网络监控**: 扩展对 XMLHttpRequest 和 Fetch 请求的监控
-3. **SPA 路由**: 增强对单页应用路由变化的支持
-4. **采样率控制**: 添加数据采样策略，减少上报数据量
-5. **本地缓存**: 提供离线存储和重试机制
-6. **数据压缩**: 在上报前压缩数据
-7. **用户会话跟踪**: 增加会话管理功能
-8. **Web Vitals**: 更全面地收集 Web Core Vitals 指标
-9. **用户画像**: 收集用户环境信息（浏览器、操作系统等）
-10. **插件系统**: 实现插件化架构，便于扩展
+## 许可证
+
+MIT
