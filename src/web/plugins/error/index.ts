@@ -39,12 +39,7 @@ export class ErrorVitals {
     if (hasSubmitStatus) return;
     this.submitErrorUids.push(submitParams.errorUid);
     this.engineInstance.breadcrumbs.clear();
-    this.engineInstance.transportInstance.kernelTransportHandler(
-      this.engineInstance.transportInstance.formatTransportData(
-        Transport.transportCategory.ERROR,
-        submitParams
-      )
-    );
+    this.engineInstance.report(Transport.transportCategory.ERROR, submitParams);
   };
 
   /** 初始化 JS异常 的数据获取和上报 */

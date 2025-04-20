@@ -53,12 +53,7 @@ export class UserVitals {
 
   /** 封装用户行为的上报入口 */
   userSendHandler = (data: IMetrics) => {
-    this.engineInstance.transportInstance.kernelTransportHandler(
-      this.engineInstance.transportInstance.formatTransportData(
-        Transport.transportCategory.PV,
-        data
-      )
-    );
+    this.engineInstance.report(Transport.transportCategory.PV, data);
   };
 
   /** 补齐 pathname 和 timestamp 参数 */

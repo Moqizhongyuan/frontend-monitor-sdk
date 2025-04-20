@@ -1,9 +1,10 @@
 import { BehaviorStore } from "./behaviorStore";
 import { Dimension } from "./dimension";
+import { EventDispatcher } from "./eventDistapch";
 import { Transport } from "./transport";
 
 /** 引擎 */
-export class Engine {
+export class Engine extends EventDispatcher {
   /** 初始化参数 */
   private config: Engine.IEngineInstanceOptions;
   /** 数据上传实例 */
@@ -14,6 +15,7 @@ export class Engine {
   public breadcrumbs: BehaviorStore;
 
   constructor(options: Engine.IEngineInstanceOptions) {
+    super();
     this.config = options;
     this.transportInstance = new Transport(this, {
       transportUrl: this.config.transportUrl,
@@ -31,13 +33,20 @@ export class Engine {
   start = () => {};
 
   /** 上报 */
-  report = () => {};
+  report = (type: Transport.transportCategory, data: any) => {
+    this.build(type, data);
+  };
 
   /** 构建 */
-  build = () => {};
+  build = (type: Transport.transportCategory, data: any) => {
+    const formateData = this.transportInstance.formatTransportData(type, data);
+    this.send(formateData);
+  };
 
   /** 发送 */
-  send = () => {};
+  send = (formateData: any) => {
+    this.transportInstance.kernelTransportHandler(formateData);
+  };
 
   /** 销毁 */
   destroy = () => {};
@@ -47,5 +56,13 @@ export namespace Engine {
   export interface IEngineInstanceOptions {
     transportUrl: string;
     maxBehaviorRecords: number;
+  }
+  export enum engineLifeState {
+    INIT = "init",
+    START = "start",
+    REPORT = "report",
+    BUILD = "build",
+    SEND = "send",
+    DESTROY = "destroy",
   }
 }

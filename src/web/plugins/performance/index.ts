@@ -36,11 +36,9 @@ export class WebVitals {
 
   /** 性能数据的上报策略 */
   perfSendHandler = (): void => {
-    this.engineInstance.transportInstance.kernelTransportHandler(
-      this.engineInstance.transportInstance.formatTransportData(
-        Transport.transportCategory.PERF,
-        this.metrics.getValues()
-      )
+    this.engineInstance.report(
+      Transport.transportCategory.PERF,
+      this.metrics.getValues()
     );
   };
 
