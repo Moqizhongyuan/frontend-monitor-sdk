@@ -3,12 +3,14 @@
  * @author yuzhongyuan
  */
 
-import { Engine } from "../../core";
+import { Engine } from "../../core/engine";
 import { IHttpMetrics, proxyFetch, proxyXmlHttp } from "../../utils";
 import { BehaviorStore } from "../../../core";
 import { Transport } from "../../../core";
 
 export class ErrorVitals {
+  /** 插件名称 */
+  name: string = "error vitals";
   /** 引擎实例 */
   private engineInstance: Engine;
 
@@ -30,8 +32,9 @@ export class ErrorVitals {
     const submitParams: ErrorVitals.IExceptionMetrics = {
       ...data,
       breadcrumbs: this.engineInstance.breadcrumbs.get(),
-      pageInformation:
-        this.engineInstance.userInstance.metrics.get("page-information"),
+      pageInformation: this.engineInstance.plugins
+        .get("user-vitals")
+        ?.metrics?.get("page-information"),
     };
     const hasSubmitStatus = this.submitErrorUids.includes(
       submitParams.errorUid

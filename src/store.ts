@@ -3,7 +3,7 @@ export interface IMetrics {
 }
 
 // Map 暂存数据
-export default class metricsStore<T> {
+export class MetricsStore<T> {
   state: Map<T | string, IMetrics>;
 
   constructor() {

@@ -4,8 +4,8 @@
  */
 
 import { Transport } from "../../../core";
-import { Engine } from "../../core";
-import metricsStore, { IMetrics } from "../../store";
+import { Engine } from "../../core/engine";
+import { MetricsStore, IMetrics } from "../../../store";
 import {
   afterLoad,
   IHttpMetrics,
@@ -19,13 +19,16 @@ import { BehaviorStore } from "../../../core";
 import { GetUserBehaviorApiService } from "./getUserBehaviorApiService";
 
 export class UserVitals {
+  /** 插件名称 */
+  name: string = "user-vitals";
+
   private engineInstance: Engine;
 
   /** 获取用户信息类 */
   getUserBehaviorApiService = new GetUserBehaviorApiService();
 
   /** 本地数据暂存的Map类 */
-  public metrics: metricsStore<UserVitals.metricsName>;
+  public metrics: MetricsStore<UserVitals.metricsName>;
 
   /** 用户自定义事件捕获 */
   public customHandler: Function;
@@ -38,7 +41,7 @@ export class UserVitals {
 
   constructor(engineInstance: Engine) {
     this.engineInstance = engineInstance;
-    this.metrics = new metricsStore<UserVitals.metricsName>();
+    this.metrics = new MetricsStore<UserVitals.metricsName>();
     this.maxBehaviorRecords = 100;
     this.customHandler = this.initCustomerHandler();
     this.clickMountList = ["button"].map((x) => x.toLowerCase());

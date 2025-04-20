@@ -1,1 +1,2 @@
-export { Engine as WebEngine } from "./web/core";
+import { webSDK } from "./web/core/index";
+export { webSDK };

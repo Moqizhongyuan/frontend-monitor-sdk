@@ -112,11 +112,9 @@
     <!-- 加载SDK -->
     <script src="../dist/index.umd.js"></script>
     <script>
-      const { WebSdk } = Yzy_FrontendMonitor;
-      const webSdk = new WebSdk({
-        transportUrl: "http://localhost:3000/api/v1/frontend-monitor",
-      });
-      console.log(webSdk);
+      const { webSDK } = Yzy_FrontendMonitor;
+
+      console.log(webSDK);
 
       // 等待DOM加载完成
       document.addEventListener("DOMContentLoaded", function () {

@@ -4,12 +4,14 @@
  */
 
 import { Transport } from "../../../core";
-import { Engine } from "../../core";
-import MetricsStore, { IMetrics } from "../../store";
+import { Engine } from "../../core/engine";
+import { MetricsStore, IMetrics } from "../../../store";
 import { afterLoad } from "../../utils";
 import { GetPerformanceApiService } from "./getPerformanceApiService";
 
 export class WebVitals {
+  /** 插件名称 */
+  name: string = "web vitals";
   /** 引擎实例 */
   private engineInstance: Engine;
 

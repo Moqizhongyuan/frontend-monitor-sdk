@@ -1,6 +1,8 @@
+import { MetricsStore } from "../store";
+import { afterLoad } from "../web/utils";
 import { BehaviorStore } from "./behaviorStore";
 import { Dimension } from "./dimension";
-import { EventDispatcher } from "./eventDistapch";
+import { EventDispatcher } from "./eventDispatch";
 import { Transport } from "./transport";
 
 /** 引擎 */
@@ -13,8 +15,13 @@ export class Engine extends EventDispatcher {
   public dimensionInstance: Dimension;
   /** 用户行为追踪记录 */
   public breadcrumbs: BehaviorStore;
+  /** 插件 */
+  public plugins: Map<string, Engine.IPlugin>;
 
-  constructor(options: Engine.IEngineInstanceOptions) {
+  constructor(
+    options: Engine.IEngineInstanceOptions,
+    pluginConstructors: Array<Engine.IPluginConstructor>
+  ) {
     super();
     this.config = options;
     this.transportInstance = new Transport(this, {
@@ -24,13 +31,36 @@ export class Engine extends EventDispatcher {
     this.breadcrumbs = new BehaviorStore({
       maxBehaviorRecords: this.config.maxBehaviorRecords,
     });
+    this.plugins = new Map();
+    try {
+      this.init(pluginConstructors);
+    } catch {
+      this.report(Transport.transportCategory.ERROR, "init plugin error");
+    }
+    try {
+      afterLoad(this.start());
+    } catch {
+      this.report(Transport.transportCategory.ERROR, "start plugin error");
+    }
   }
 
   /** 初始化 */
-  init = () => {};
+  init = (PluginConstructors: Array<Engine.IPluginConstructor>) => {
+    PluginConstructors.forEach((PluginConstructor) => {
+      const pluginInstance = new PluginConstructor(this);
+      if (this.plugins.has(pluginInstance.name)) {
+        console.warn("this plugin has been registered");
+      }
+      this.plugins.set(pluginInstance.name, pluginInstance);
+    });
+  };
 
   /** 启动 */
-  start = () => {};
+  start = () => {
+    this.plugins.forEach((plugin) => {
+      plugin.start;
+    });
+  };
 
   /** 上报 */
   report = (type: Transport.transportCategory, data: any) => {
@@ -64,5 +94,15 @@ export namespace Engine {
     BUILD = "build",
     SEND = "send",
     DESTROY = "destroy",
+  }
+  export interface IPlugin {
+    name: string;
+    metrics?: MetricsStore<string>;
+    start?: () => {};
+    destroy?: () => {};
+  }
+
+  export interface IPluginConstructor {
+    new (engine: Engine): IPlugin;
   }
 }
