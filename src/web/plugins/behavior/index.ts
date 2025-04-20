@@ -15,7 +15,7 @@ import {
   proxyXmlHttp,
   wrHistory,
 } from "../../utils";
-import { BehaviorStore } from "./behaviorStore";
+import { BehaviorStore } from "../../../core";
 import { GetUserBehaviorApiService } from "./getUserBehaviorApiService";
 
 export class UserVitals {
@@ -26,9 +26,6 @@ export class UserVitals {
 
   /** 本地数据暂存的Map类 */
   public metrics: metricsStore<UserVitals.metricsName>;
-
-  /** 行为追踪记录 */
-  public breadcrumbs: BehaviorStore;
 
   /** 用户自定义事件捕获 */
   public customHandler: Function;
@@ -43,9 +40,6 @@ export class UserVitals {
     this.engineInstance = engineInstance;
     this.metrics = new metricsStore<UserVitals.metricsName>();
     this.maxBehaviorRecords = 100;
-    this.breadcrumbs = new BehaviorStore({
-      maxBehaviorRecords: this.maxBehaviorRecords,
-    });
     this.customHandler = this.initCustomerHandler();
     this.clickMountList = ["button"].map((x) => x.toLowerCase());
     wrHistory();
@@ -83,7 +77,7 @@ export class UserVitals {
     const handler = (options: UserVitals.ICustomAnalyticsData) => {
       this.metrics.add(UserVitals.metricsName.CDR, options);
       this.userSendHandler(options);
-      this.breadcrumbs.push({
+      this.engineInstance.breadcrumbs.push({
         name: UserVitals.metricsName.CDR,
         value: options,
         ...this.getExtends(),
@@ -111,12 +105,12 @@ export class UserVitals {
       };
       this.metrics.add(UserVitals.metricsName.RCR, metrics);
       delete metrics.pageInfo;
-      const behavior: BehaviorStore.IBehaviorStack = {
+      const behavior: BehaviorStore.IBehavior = {
         name: UserVitals.metricsName.RCR,
         value: metrics,
         ...this.getExtends(),
       };
-      this.breadcrumbs.push(behavior);
+      this.engineInstance.breadcrumbs.push(behavior);
     };
     proxyHash(handler);
     proxyHistory(handler);
@@ -171,12 +165,12 @@ export class UserVitals {
       };
       this.metrics.add(UserVitals.metricsName.CBR, metrics);
       delete metrics.pageInfo;
-      const behavior: BehaviorStore.IBehaviorStack = {
+      const behavior: BehaviorStore.IBehavior = {
         name: UserVitals.metricsName.CBR,
         value: metrics,
         ...this.getExtends(),
       };
-      this.breadcrumbs.push(behavior);
+      this.engineInstance.breadcrumbs.push(behavior);
     };
     window.addEventListener(
       "click",
@@ -194,7 +188,7 @@ export class UserVitals {
         delete metrics.response;
         delete metrics.body;
       }
-      this.breadcrumbs.push({
+      this.engineInstance.breadcrumbs.push({
         name: UserVitals.metricsName.HT,
         value: metrics,
         ...this.getExtends(),

@@ -5,7 +5,7 @@
 
 import { Engine } from "../../core";
 import { IHttpMetrics, proxyFetch, proxyXmlHttp } from "../../utils";
-import { BehaviorStore } from "../behavior/behaviorStore";
+import { BehaviorStore } from "../../../core";
 import { Transport } from "../../../core";
 
 export class ErrorVitals {
@@ -29,7 +29,7 @@ export class ErrorVitals {
   errorSendHandler = (data: ErrorVitals.IExceptionMetrics) => {
     const submitParams: ErrorVitals.IExceptionMetrics = {
       ...data,
-      breadcrumbs: this.engineInstance.userInstance.breadcrumbs.get(),
+      breadcrumbs: this.engineInstance.breadcrumbs.get(),
       pageInformation:
         this.engineInstance.userInstance.metrics.get("page-information"),
     };
@@ -38,7 +38,7 @@ export class ErrorVitals {
     );
     if (hasSubmitStatus) return;
     this.submitErrorUids.push(submitParams.errorUid);
-    this.engineInstance.userInstance.breadcrumbs.clear();
+    this.engineInstance.breadcrumbs.clear();
     this.engineInstance.transportInstance.kernelTransportHandler(
       this.engineInstance.transportInstance.formatTransportData(
         Transport.transportCategory.ERROR,
@@ -217,7 +217,7 @@ export namespace ErrorVitals {
     /** 发生错误时的页面信息 */
     pageInformation?: Object;
     /** 错误发生前的用户行为轨迹 */
-    breadcrumbs?: Array<BehaviorStore.IBehaviorStack>;
+    breadcrumbs?: Array<BehaviorStore.IBehavior>;
     /** 错误的唯一标识符，用于去重和追踪 */
     errorUid: string;
     /** 附加的元数据信息 */

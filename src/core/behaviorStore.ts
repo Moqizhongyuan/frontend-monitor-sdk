@@ -3,11 +3,9 @@
  * @author yuzhongyuan
  */
 
-import { UserVitals } from ".";
-
 export class BehaviorStore {
   /** 用户行为堆栈stack */
-  private stack: Array<BehaviorStore.IBehaviorStack>;
+  private stack: Array<BehaviorStore.IBehavior>;
 
   // 记录的最大数量
   private maxBehaviorRecords: number;
@@ -20,7 +18,7 @@ export class BehaviorStore {
   }
 
   // 从底部插入一个元素，且不超过 maxBehaviorRecords 限制数量
-  push(value: BehaviorStore.IBehaviorStack) {
+  push(value: BehaviorStore.IBehavior) {
     if (this.length() === this.maxBehaviorRecords) {
       this.shift();
     }
@@ -50,8 +48,8 @@ export namespace BehaviorStore {
     maxBehaviorRecords: number;
   }
 
-  export interface IBehaviorStack {
-    name: UserVitals.metricsName;
+  export interface IBehavior {
+    name: string;
     page: string;
     timestamp: number | string;
     value: Object;
