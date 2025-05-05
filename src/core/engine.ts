@@ -19,21 +19,21 @@ export class Engine extends EventDispatcher {
   public plugins: Map<string, Engine.IPlugin>;
 
   constructor(
-    options: Engine.IEngineInstanceOptions,
-    pluginConstructors: Array<Engine.IPluginConstructor>
+    transportUrl: string,
+    options?: Engine.IEngineInstanceOptions,    
   ) {
     super();
-    this.config = options;
+    this.config = options || {};
     this.transportInstance = new Transport(this, {
-      transportUrl: this.config.transportUrl,
+      transportUrl,
     });
     this.dimensionInstance = new Dimension(this);
     this.breadcrumbs = new BehaviorStore({
-      maxBehaviorRecords: this.config.maxBehaviorRecords,
+      maxBehaviorRecords: this.config.maxBehaviorRecords || 100,
     });
     this.plugins = new Map();
     try {
-      this.init(pluginConstructors);
+      this.init(options?.plugins || []);
     } catch {
       this.report(Transport.transportCategory.ERROR, "init plugin error");
     }
@@ -84,8 +84,8 @@ export class Engine extends EventDispatcher {
 
 export namespace Engine {
   export interface IEngineInstanceOptions {
-    transportUrl: string;
-    maxBehaviorRecords: number;
+    maxBehaviorRecords?: number;
+    plugins?: Array<Engine.IPluginConstructor>
   }
   export enum engineLifeState {
     INIT = "init",

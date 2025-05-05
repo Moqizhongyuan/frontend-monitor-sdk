@@ -1,5 +1,5 @@
 {
-  "name": "frontend-monitor-sdk",
+  "name": "yzy-monitor",
   "version": "1.0.0",
   "description": "前端监控SDK",
   "type": "module",
@@ -7,6 +7,13 @@
   "module": "dist/index.esm.js",
   "browser": "dist/index.umd.js",
   "types": "dist/index.d.ts",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "import": "./dist/index.esm.js",
+      "require": "./dist/index.js"
+    }
+  },
   "files": [
     "dist"
   ],

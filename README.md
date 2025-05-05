@@ -1,48 +1,23 @@
-# Frontend-Monitor-SDK
+# yzy-monitor
 
 前端监控 SDK，用于追踪和收集前端应用的性能指标、错误信息和用户行为数据。
 
 ## 简介
 
-Frontend-Monitor-SDK 是一个全面的前端监控解决方案，帮助开发者实时监控网站性能、捕获错误和分析用户行为。该 SDK 通过无侵入式集成，为开发团队提供丰富的监控数据，从而优化用户体验和提高应用质量。
-
-## 功能特点
-
-### 错误监控
-
-- **JavaScript 错误捕获**：捕获运行时和语法错误
-- **资源加载错误监控**：监控脚本、样式、图片等资源的加载失败
-- **Promise 异常捕获**：捕获未处理的 Promise 异常
-- **HTTP 请求错误监控**：监控接口请求异常
-- **跨域错误追踪**：记录跨域脚本异常
-
-### 性能监控
-
-- **核心 Web 指标**：监控 LCP、FID、CLS 等 Google 核心 Web 指标
-- **性能计时**：收集首次绘制(FP)、首次内容绘制(FCP)等关键时间点
-- **资源加载性能**：追踪页面所有资源加载性能
-- **导航计时**：详细记录页面加载各阶段的耗时
-
-### 用户行为追踪
-
-- **页面访问追踪**：记录 PV、来源信息、访问路径
-- **交互行为监控**：记录用户点击行为
-- **路由变化记录**：监控单页应用的路由变化
-- **面包屑行为记录**：记录用户行为序列，帮助错误复现
-- **自定义事件分析**：支持开发者自定义埋点记录关键业务指标
+`yzy-monitor` 是一款开箱即用的前端埋点 SDK，可以直接使用现有的 web 端监控插件，也可以在原有的内核上进行二次开发，自定义插件，如果对打包体积有要求可以开启 `Tree Shaking` ，这样会帮助你删掉无用的代码
 
 ## 安装
 
 使用 npm:
 
 ```bash
-npm install frontend-monitor-sdk
+npm install yzy-monitor
 ```
 
 使用 pnpm:
 
 ```bash
-pnpm add frontend-monitor-sdk
+pnpm add yzy-monitor
 ```
 
 ## 快速开始
@@ -50,11 +25,12 @@ pnpm add frontend-monitor-sdk
 ### 基本使用
 
 ```javascript
-import { WebEngine } from "frontend-monitor-sdk";
-
+import { Engine as WebEngine, WebVitals, UserVitals, ErrorVitals } from "./web";
 // 初始化监控引擎
-const monitor = new WebEngine({
-  transportUrl: "https://your-api-endpoint.com/collect", // 数据上报地址
+const monitor = new WebEngine("https://monitor.yzy.com/api/v1/monitor", {
+  // 数据上报地址
+  maxBehaviorRecords: 100,
+  plugins: [WebVitals, UserVitals, ErrorVitals],
 });
 
 // SDK会自动开始收集错误、性能和用户行为数据
@@ -72,7 +48,7 @@ monitor.userInstance.customHandler({
 });
 ```
 
-## 核心模块
+## Web 端插件
 
 ### 1. 错误监控 (ErrorVitals)
 
