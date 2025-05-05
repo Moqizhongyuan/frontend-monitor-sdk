@@ -119,3 +119,112 @@ pnpm test
 ## 许可证
 
 MIT
+
+# yzy-monitor  
+
+Front-end monitoring SDK for tracking and collecting performance metrics, error information, and user behavior data from web applications.  
+
+## Introduction  
+
+`yzy-monitor` is an out-of-the-box front-end tracking SDK. It can be used directly with built-in web monitoring plugins or extended through secondary development to create custom plugins. For projects with strict bundle size requirements, enabling `Tree Shaking` will remove unused code.  
+
+## Installation  
+
+Using npm:  
+```bash  
+npm install yzy-monitor  
+```  
+
+Using pnpm:  
+```bash  
+pnpm add yzy-monitor  
+```  
+
+## Quick Start  
+
+### Basic Usage  
+```javascript  
+import { Engine as WebEngine, WebVitals, UserVitals, ErrorVitals } from "./web";  
+
+// Initialize monitoring engine  
+const monitor = new WebEngine("https://monitor.yzy.com/api/v1/monitor", {  
+  // Data reporting endpoint  
+  maxBehaviorRecords: 100,  
+  plugins: [WebVitals, UserVitals, ErrorVitals],  
+});  
+
+// The SDK automatically starts collecting errors, performance, and user behavior data  
+```  
+
+### Custom Event Tracking  
+```javascript  
+// Track a video play event  
+monitor.userInstance.customHandler({  
+  eventCategory: "Video",  
+  eventAction: "play",  
+  eventLabel: "homepage-intro",  
+  eventValue: "30s",  
+});  
+```  
+
+## Web Plugins  
+
+### 1. Error Monitoring (ErrorVitals)  
+Automatically captures and reports various errors:  
+- JavaScript runtime errors  
+- Resource loading errors  
+- Unhandled Promise rejections  
+- HTTP request errors  
+- Cross-origin resource errors  
+
+When errors occur, the SDK logs:  
+- Error type and message  
+- Stack trace  
+- Page context  
+- User behavior breadcrumbs  
+
+### 2. Performance Monitoring (WebVitals)  
+Tracks key performance metrics including:  
+
+| Metric                          | Description                     |  
+|---------------------------------|---------------------------------|  
+| FP (First Paint)                | First paint time                |  
+| FCP (First Contentful Paint)    | First contentful paint time     |  
+| LCP (Largest Contentful Paint)  | Largest contentful paint time   |  
+| FID (First Input Delay)         | First input delay               |  
+| CLS (Cumulative Layout Shift)   | Cumulative layout shift         |  
+| Navigation Timing               | Page load phase metrics         |  
+| Resource Flow                   | Resource loading performance    |  
+
+### 3. User Behavior Monitoring (UserVitals)  
+Tracks user interactions:  
+- Page navigation  
+- Referrer information  
+- Route changes  
+- Click behavior  
+- HTTP requests  
+- Custom events  
+
+## Data Reporting  
+All monitored data is reported to your configured API endpoint. Supports batch reporting and error-first prioritization to ensure critical issues are promptly detected.  
+
+## Browser Compatibility  
+Supports all modern browsers (Chrome, Firefox, Safari, Edge) and IE11+. Some advanced metrics may be degraded or unavailable in older browsers.  
+
+## Local Development  
+```bash  
+# Install dependencies  
+pnpm install  
+
+# Development mode  
+pnpm dev  
+
+# Build  
+pnpm build  
+
+# Run tests  
+pnpm test  
+```  
+
+## License  
+MIT  
